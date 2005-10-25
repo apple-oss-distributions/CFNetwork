@@ -941,8 +941,10 @@ _RegisterReply(DNSServiceRef sdRef, DNSServiceFlags flags, DNSServiceErrorType e
 		if (errorCode) {
 			
 			/* Save the error */
-			error.error = errorCode;
-			error.domain = kCFStreamErrorDomainNetServices;
+			service->_error.error = errorCode;
+			service->_error.domain = kCFStreamErrorDomainNetServices;
+
+
 		}
 		
 		/* Save the registered values */
@@ -1040,7 +1042,7 @@ _ResolveReply(DNSServiceRef sdRef, DNSServiceFlags flags, uint32_t interfaceInde
 		else {
 			
 			CFAllocatorRef alloc = CFGetAllocator((CFNetServiceRef)service);
-			CFDataRef txt = txtRecord ? CFDataCreate(alloc, txtRecord, txtLen) : NULL;
+			CFDataRef txt = txtRecord ? CFDataCreate(alloc, (const UInt8*)txtRecord, txtLen) : NULL;
 			CFStringRef tgt = hosttarget ? CFStringCreateWithCString(alloc, hosttarget, kCFStringEncodingUTF8) : NULL;
 			
 			/* Save the port */
@@ -2813,7 +2815,7 @@ CFNetServiceCreateTXTDataWithDictionary(CFAllocatorRef alloc, CFDictionaryRef ke
 					break;
 					
 				/* Set the raw bytes */
-				set = TXTRecordSetValue(&txt, key, used, value);
+				set = TXTRecordSetValue(&txt, (const char*)key, used, value);
 			}
 			
 			/* If it's data, it needs to be in the range of 0 and 255, inclusive. */
@@ -2823,7 +2825,7 @@ CFNetServiceCreateTXTDataWithDictionary(CFAllocatorRef alloc, CFDictionaryRef ke
 			{
 				/* Set the raw bytes from the data */
 				set = TXTRecordSetValue(&txt,
-										key,
+										(const char*)key,
 										CFDataGetLength((CFDataRef)(values[i])),
 										CFDataGetBytePtr((CFDataRef)(values[i])));
 			}
@@ -2832,7 +2834,7 @@ CFNetServiceCreateTXTDataWithDictionary(CFAllocatorRef alloc, CFDictionaryRef ke
 			else if (values[i] == kCFNull) {
 				
 				/* Sets the key to no value */
-				set = TXTRecordSetValue(&txt, key, 0, NULL);
+				set = TXTRecordSetValue(&txt, (const char*)key, 0, NULL);
 			}
 			
 			/* Bad type */
